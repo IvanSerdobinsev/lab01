@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 #include <algorithm>
 #include <chrono>
 #include <random>
@@ -12,20 +11,20 @@ const int MIN_N = 100;
 const int MAX_N = 100000;
 const int STEP = 2500;
 const int NUM_REPEATS = 500;
+const int MAX_ARRAY_SIZE = 100000; // Максимальный размер массива
 
-bool linearSearch(const vector<int>& arr, int target) {
-    for (int value : arr) {
-        if (value == target) {
+bool lin_search(const int* arr, int size, int target) {
+    for (int i = 0; i < size; ++i) {
+        if (arr[i] == target) {
             return true;
         }
     }
     return false;
 }
 
-
-bool binarySearch(const vector<int>& arr, int target) {
+bool bin_search(const int* arr, int size, int target) {
     int left = 0;
-    int right = arr.size() - 1;
+    int right = size - 1;
     
     while (left <= right) {
         int mid = left + (right - left) / 2;
@@ -44,16 +43,17 @@ bool binarySearch(const vector<int>& arr, int target) {
 }
 
 int main() {
-    vector<int> N_values;
-    vector<double> av_times;        
-    vector<double> worst_times;     
-    vector<double> av_bin_times;    
-    vector<double> worst_bin_times; 
+    int N_values[(MAX_N - MIN_N) / STEP + 1];
+    double av_times[(MAX_N - MIN_N) / STEP + 1];
+    double worst_times[(MAX_N - MIN_N) / STEP + 1];
+    double av_bin_times[(MAX_N - MIN_N) / STEP + 1];
+    double worst_bin_times[(MAX_N - MIN_N) / STEP + 1];
     
+    int* arr = new int[MAX_ARRAY_SIZE];
+    int* sorted_arr = new int[MAX_ARRAY_SIZE];
     
     random_device rd;
     mt19937 gen(rd());
-    
     
     cout << setw(10) << "N " 
         << setw(15) << "Линейный(ср) " 
@@ -62,11 +62,9 @@ int main() {
         << setw(15) << "Бинарный(худ) " << endl;
     cout << string(70, '-') << endl;
     
+    int index = 0;
     for (int N = MIN_N; N <= MAX_N; N += STEP) {
-        N_values.push_back(N);
-        
-        vector<int> arr(N);
-        vector<int> sorted_arr(N);
+        N_values[index] = N;
         
         uniform_int_distribution<> dis(1, N * 10);
         for (int i = 0; i < N; ++i) {
@@ -74,7 +72,7 @@ int main() {
             sorted_arr[i] = arr[i];
         }
         
-        sort(sorted_arr.begin(), sorted_arr.end());
+        sort(sorted_arr, sorted_arr + N);
         
         int worst_value = N * 10 + 1;
         
@@ -85,54 +83,55 @@ int main() {
         for (int repeat = 0; repeat < NUM_REPEATS; ++repeat) {
             int target = value_dis(gen);
             start_time = chrono::steady_clock::now();
-            linearSearch(arr, target);
+            lin_search(arr, N, target);
             auto end_time = chrono::steady_clock::now();
             auto duration = chrono::duration_cast<chrono::microseconds>(end_time - start_time);
             total_av_time += duration.count() / 1000.0;
         }
         
-        av_times.push_back(total_av_time / NUM_REPEATS);
+        av_times[index] = total_av_time / NUM_REPEATS;
         
         start_time = chrono::steady_clock::now();
         for (int repeat = 0; repeat < NUM_REPEATS; ++repeat) {
-            linearSearch(arr, worst_value);
+            lin_search(arr, N, worst_value);
         }
         auto end_time = chrono::steady_clock::now();
         auto duration = chrono::duration_cast<chrono::microseconds>(end_time - start_time);
-        worst_times.push_back(duration.count() / 1000.0 / NUM_REPEATS);
+        worst_times[index] = duration.count() / 1000.0 / NUM_REPEATS;
         
-
         double total_av_bin_time = 0;
         
         for (int repeat = 0; repeat < NUM_REPEATS; ++repeat) {
             int target = value_dis(gen);
             start_time = chrono::steady_clock::now();
-            binarySearch(sorted_arr, target);
+            bin_search(sorted_arr, N, target);
             end_time = chrono::steady_clock::now();
             duration = chrono::duration_cast<chrono::microseconds>(end_time - start_time);
             total_av_bin_time += duration.count() / 1000.0;
         }
-        av_bin_times.push_back(total_av_bin_time / NUM_REPEATS);
+        av_bin_times[index] = total_av_bin_time / NUM_REPEATS;
         
         start_time = chrono::steady_clock::now();
         for (int repeat = 0; repeat < NUM_REPEATS; ++repeat) {
-            binarySearch(sorted_arr, worst_value);
+            bin_search(sorted_arr, N, worst_value);
         }
         end_time = chrono::steady_clock::now();
         duration = chrono::duration_cast<chrono::microseconds>(end_time - start_time);
-        worst_bin_times.push_back(duration.count() / 1000.0 / NUM_REPEATS);
+        worst_bin_times[index] = duration.count() / 1000.0 / NUM_REPEATS;
         
         cout << setw(10) << N 
-            << setw(15) << fixed << setprecision(5) << av_times.back()
-            << setw(15) << worst_times.back()
-            << setw(15) << av_bin_times.back()
-            << setw(15) << worst_bin_times.back() << endl;
+            << setw(15) << fixed << setprecision(5) << av_times[index]
+            << setw(15) << worst_times[index]
+            << setw(15) << av_bin_times[index]
+            << setw(15) << worst_bin_times[index] << endl;
+        
+        ++index;
     }
     
     ofstream file("search_results.csv");
     file << "N,av_times,worst_times,av_bin_times,worst_bin_times\n";
     
-    for (size_t i = 0; i < N_values.size(); ++i) {
+    for (int i = 0; i < index; ++i) {
         file << N_values[i] << ","
             << av_times[i] << ","
             << worst_times[i] << ","
@@ -141,9 +140,12 @@ int main() {
     }
     file.close();
     
+    delete[] arr;
+    delete[] sorted_arr;
+    
     cout << string(70, '-') << endl;
     cout << "\nИзмерения завершены! Данные сохранены в файл search_results.csv" << endl;
-    cout << "Всего измерено точек: " << N_values.size() << endl;
+    cout << "Всего измерено точек: " << index << endl;
     
     return 0;
 }

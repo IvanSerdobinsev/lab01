@@ -9,25 +9,11 @@ print("Названия колонок в файле:", list(data.columns))
 N = data['N'].values
 
 
-if 'quadratic_time_us' in data.columns:
-    quad_time = data['quadratic_time_us'].values
-elif 'quadratic_time' in data.columns:
-    quad_time = data['quadratic_time'].values
-elif 'quadratic_mean_us' in data.columns:
-    quad_time = data['quadratic_mean_us'].values
-else:
-    quad_time = data.iloc[:, 1].values
-    print(f"Используем колонку {data.columns[1]} для квадратичного времени")
 
-if 'linear_time_us' in data.columns:
-    lin_time = data['linear_time_us'].values
-elif 'linear_time' in data.columns:
-    lin_time = data['linear_time'].values
-elif 'linear_mean_us' in data.columns:
-    lin_time = data['linear_mean_us'].values
-else:
-    lin_time = data.iloc[:, 2].values
-    print(f"Используем колонку {data.columns[2]} для линейного времени")
+quad_time = data.iloc[:, 1].values
+
+
+lin_time = data.iloc[:, 2].values
 
 def linear_approx(x, y):
     coeffs = np.polyfit(x, y, 1)
@@ -44,7 +30,7 @@ fig1.suptitle('Алгоритм полного перебора для зада�
         fontsize=16, fontweight='bold')
 
 # График 1: Зависимость времени от N
-ax1.plot(N, quad_time, 'b-', linewidth=2, label='Экспериментальные данные', marker='o', markersize=4)
+ax1.plot(N, quad_time, 'o', label='Экспериментальные данные', marker='o', markersize=4)
 
 # Квадратичная аппроксимация
 coeffs_quad, approx_quad = quadratic_approx(N, quad_time)
@@ -63,7 +49,7 @@ ax1.grid(True, alpha=0.3, linestyle='--')
 
 # График 2: Зависимость времени от N²
 N_squared = N * N
-ax2.plot(N_squared, quad_time, 'b-', linewidth=2, label='Экспериментальные данные', marker='o', markersize=4)
+ax2.plot(N_squared, quad_time, 'o', label='Экспериментальные данные', marker='o', markersize=4)
 
 # Линейная аппроксимация от N²
 coeffs_quad_linear, approx_quad_linear = linear_approx(N_squared, quad_time)
@@ -87,10 +73,10 @@ plt.tight_layout()
 # второе окно
 fig2, ax3 = plt.subplots(1, 1, figsize=(10, 7))
 fig2.suptitle('Линейный алгоритм для упорядоченного массива (O(N))', 
-              fontsize=16, fontweight='bold')
+        fontsize=16, fontweight='bold')
 
 # График 3: Зависимость времени от N
-ax3.plot(N, lin_time, 'g-', linewidth=2, label='Экспериментальные данные', marker='s', markersize=4)
+ax3.plot(N, lin_time, 'o', label='Экспериментальные данные', marker='s', markersize=4)
 
 coeffs_lin, approx_lin = linear_approx(N, lin_time)
 ax3.plot(N, approx_lin, 'r--', linewidth=2,
