@@ -102,7 +102,7 @@ int main() {
     cout << "  T   |   analyt |     Naive |     Kahan  |     my_fma |     Double     |   ε_naive |      ε_kahan |      ε_fma   |      ε_double\n";
     for (size_t idx = 0; idx < Ts.size(); ++idx) { 
         float T = Ts[idx];
-        float v_max = 8.0f * sqrt(T);  // динамический выбор предела для точности
+        float v_max = 8.0f * sqrt(T);  
     
         
         float analytic = sqrt(T / f_pi);
@@ -129,7 +129,4 @@ int main() {
             << " " << eps_fma << " |"
             << " " << eps_double << "\n";
     }
-    
-    
-    return 0;
 }
